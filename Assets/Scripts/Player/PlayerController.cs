@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("No se encontró ningún BallController en la escena.");
         }
 
-        void FixedUpdate()
+        void Update()
         {
             if (!GameManager.Instance.gameRunning) return;
 

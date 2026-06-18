@@ -1,0 +1,32 @@
+# Unity
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+*.pidb
+*.suo
+*.user
+*.userprefs
+*.unityproj
+*.booproj
+
+# Visual Studio / Rider
+.vs/
+*.csproj
+*.sln
+*.csproj.user
+*.sln.docinfo
+Assembly-CSharp*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# dotnet
+*.dll
+*.exe
+project-dependencies.graph

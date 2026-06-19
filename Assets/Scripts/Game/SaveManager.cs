@@ -2,6 +2,18 @@ using UnityEngine;
 
 public static class SaveManager
 {
+    private const string KEY_SELECTED_BALL = "selectedBall";
+
+    public static void SaveSelectedBall(string ballName)
+    {
+        PlayerPrefs.SetString(KEY_SELECTED_BALL, ballName);
+        PlayerPrefs.Save();
+    }
+
+    public static string GetSelectedBall()
+    {
+        return PlayerPrefs.GetString(KEY_SELECTED_BALL, "Futbol");
+    }
     private const string KEY_POINTS = "totalPoints";
     private const string KEY_HIGHSCORE = "highScore";
     private const string KEY_UNLOCKED = "unlockedBalls";

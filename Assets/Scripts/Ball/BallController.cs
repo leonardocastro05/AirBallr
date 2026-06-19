@@ -2,59 +2,110 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    [Header("Ball Settings")]
-    public float bounceMultiplier = 1f;     // cada balón tendrá el suyo
-    public float baseUpwardForce = 8f;      // fuerza base del toque
-    public float speedIncrement = 0.15f;    // +0.15x cada 50 toques
+[Header("Ball Settings")]
+public float bounceMultiplier = 1f;
+public float baseUpwardForce = 8f;
+public float speedIncrement = 0.15f;
 
-    [Header("State")]
-    public bool isAlive = true;
+[Header("State")]
+public bool isAlive = true;
 
-    private Rigidbody2D rb;
-    private GameManager gameManager;
+private Rigidbody2D rb;
+private CircleCollider2D circleCollider;
+private float originalRadius;
 
-    void Start()
+private GameManager gameManager;
+
+void Start()
+{
+    rb = GetComponent<Rigidbody2D>();
+
+    circleCollider = GetComponent<CircleCollider2D>();
+
+    if (circleCollider != null)
     {
-        rb = GetComponent<Rigidbody2D>();
-        gameManager = GameManager.Instance;
-
-        // Gravedad normal hacia abajo
-        rb.gravityScale = 1f;
+        originalRadius = circleCollider.radius;
     }
 
-    // Llamado desde PlayerController cuando el ratón toca el balón
-    public void ApplyTouchForce(Vector2 hitDirection)
+    gameManager = GameManager.Instance;
+
+    rb.gravityScale = 1f;
+}
+
+public void ApplyTouchForce(Vector2 hitDirection)
+{
+    if (!isAlive)
+        return;
+
+    rb.linearVelocity = Vector2.zero;
+
+    float currentMultiplier =
+        1f + gameManager.GetSpeedBonus();
+
+    float force =
+        baseUpwardForce *
+        bounceMultiplier *
+        currentMultiplier;
+
+    Vector2 finalForce = new Vector2(
+        hitDirection.x * 2f,
+        force
+    );
+
+    rb.AddForce(finalForce, ForceMode2D.Impulse);
+
+    gameManager.RegisterTouch();
+}
+
+public void IncreaseHitbox()
+{
+    if (circleCollider != null)
     {
-        if (!isAlive) return;
-
-        // Cancelamos velocidad actual y aplicamos nuevo impulso hacia arriba
-        rb.linearVelocity = Vector2.zero;
-
-        float currentMultiplier = 1f + (gameManager.GetSpeedBonus());
-        float force = baseUpwardForce * bounceMultiplier * currentMultiplier;
-
-        // La dirección tiene componente horizontal según donde golpeaste
-        Vector2 finalForce = new Vector2(hitDirection.x * 2f, force);
-        rb.AddForce(finalForce, ForceMode2D.Impulse);
-
-        gameManager.RegisterTouch();
+        circleCollider.radius = originalRadius * 1.5f;
     }
+}
 
-    // El balón tocó el suelo
-    void OnCollisionEnter2D(Collision2D collision)
+public void RestoreHitbox()
+{
+    if (circleCollider != null)
     {
-        if (collision.gameObject.CompareTag("Ground") && isAlive)
+        circleCollider.radius = originalRadius;
+    }
+}
+
+void OnCollisionEnter2D(Collision2D collision)
+{
+    if (!isAlive)
+        return;
+
+    if (collision.gameObject.CompareTag("Ground"))
+    {
+        if (gameManager.IsGravityOffActive())
         {
-            // Verificar si Gravity Off está activo
-            if (gameManager.IsGravityOffActive())
-            {
-                // Rebotar sin perder
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, baseUpwardForce * bounceMultiplier);
-                return;
-            }
+            rb.linearVelocity = new Vector2(
+                rb.linearVelocity.x,
+                baseUpwardForce * bounceMultiplier
+            );
 
-            isAlive = false;
-            gameManager.GameOver();
+            return;
         }
+
+        isAlive = false;
+        gameManager.GameOver();
     }
+}
+
+public void ResetBall()
+{
+    isAlive = true;
+
+    rb.linearVelocity = Vector2.zero;
+    rb.angularVelocity = 0f;
+
+    transform.position = Vector3.zero;
+
+    RestoreHitbox();
+}
+
+
 }
